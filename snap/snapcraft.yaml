@@ -46,12 +46,19 @@ parts:
       echo '  bomWriter.close()' >> packages.gradle
       echo '}' >> packages.gradle
 
+      # prep gradlew proxy args for lp builders
+      if `env | grep -q snap-proxy.launchpad.net`; then
+        export GRADLEW_ARGS='-Dhttp.proxyHost=snap-proxy.launchpad.net -Dhttp.proxyPort=3128 -Dhttps.proxyHost=snap-proxy.launchpad.net -Dhttps.proxyPort=3128'
+      else
+        export GRADLEW_ARGS=''
+      fi
+
       # setup the bigtop toolchain
-      ./gradlew toolchain-puppetmodules
-      ./gradlew toolchain
+      ./gradlew $GRADLEW_ARGS toolchain-puppetmodules
+      ./gradlew $GRADLEW_ARGS toolchain
 
       # create the bom
-      ./gradlew bom-snap
+      ./gradlew $GRADLEW_ARGS bom-snap
 
       # there is no 'build' for bigtop-utils, just set perms
       chmod 755 bigtop-packages/src/common/bigtop-utils/bigtop-detect-*
@@ -144,10 +151,11 @@ parts:
       PATH=/usr/local/ant/bin:/usr/local/gradle/bin:/usr/local/maven/bin:$PATH \
         ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
     install: |
+      # adapted from ./bigtop-packages/src/deb/hadoop/rules
       ../../bigtop/build/bigtop-packages/src/common/hadoop/install_hadoop.sh \
         --prefix=$SNAPCRAFT_PART_INSTALL \
-        --build-dir=build \
         --distro-dir=../../bigtop/build/bigtop-packages/src/common/hadoop \
+        --build-dir=build \
         --httpfs-dir=$SNAPCRAFT_PART_INSTALL/usr/lib/hadoop-httpfs \
         --httpfs-etc-dir=$SNAPCRAFT_PART_INSTALL/etc/hadoop-httpfs \
         --system-lib-dir=$SNAPCRAFT_PART_INSTALL/usr/lib/ \
@@ -156,10 +164,6 @@ parts:
         --doc-dir=$SNAPCRAFT_PART_INSTALL/usr/share/doc/hadoop-doc \
         --man-dir=$SNAPCRAFT_PART_INSTALL/usr/share/man \
         --example-dir=$SNAPCRAFT_PART_INSTALL/usr/share/doc/hadoop/examples
-
-      # adapted from ./bigtop-packages/src/deb/hadoop/rules
-      #ln -sf $SNAPCRAFT_PART_INSTALL/usr/lib/zookeeper/zookeeper.jar \
-      #  $SNAPCRAFT_PART_INSTALL/usr/lib/hadoop/lib/zookeeper*.jar
 
       install -d -m 0755 $SNAPCRAFT_PART_INSTALL/etc/default
       cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hadoop.default \
