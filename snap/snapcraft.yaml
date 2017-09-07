@@ -32,9 +32,10 @@ parts:
     plugin: dump
     build-packages:
       - curl
+      - default-jdk-headless
       - patch
       - puppet-common
-      - default-jdk-headless
+      - unzip
     stage-packages:
       - default-jdk-headless
     prepare: |
