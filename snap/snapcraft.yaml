@@ -54,11 +54,14 @@ parts:
       fi
 
       # setup the bigtop toolchain
-      ./gradlew $GRADLEW_ARGS toolchain-puppetmodules
-      ./gradlew $GRADLEW_ARGS toolchain
+      echo "Running gradlew with: $GRADLEW_ARGS"
+      echo "JSON for plugin:"
+      curl https://plugins.gradle.org/api/gradle/2.14.1/plugin/use/de.undercouch.download/3.2.0
+      ./gradlew -d $GRADLEW_ARGS toolchain-puppetmodules
+      ./gradlew -d $GRADLEW_ARGS toolchain
 
       # create the bom
-      ./gradlew $GRADLEW_ARGS bom-snap
+      ./gradlew -d $GRADLEW_ARGS bom-snap
 
       # there is no 'build' for bigtop-utils, just set perms
       chmod 755 bigtop-packages/src/common/bigtop-utils/bigtop-detect-*
