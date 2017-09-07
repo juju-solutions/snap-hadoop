@@ -29,7 +29,8 @@ parts:
     source: https://github.com/apache/bigtop.git
     source-type: git
     source-branch: branch-1.2
-    plugin: dump
+    plugin: gradle
+    gradle-options: ['toolchain-puppetmodules', 'toolchain', 'bom-snap']
     build-packages:
       - curl
       - default-jdk-headless
@@ -39,32 +40,12 @@ parts:
     stage-packages:
       - default-jdk-headless
     prepare: |
-      # add a gradlew task to generate a sourceable bom for use by other parts
+      # add a gradle task to generate a sourceable bom for use by other parts
       echo 'task "bom-snap" () << {' >> packages.gradle
       echo '  def bomWriter = new File("bigtop-snap.bom").newWriter()' >> packages.gradle
       echo '  bomVersions.each { bomWriter << "$it\\n"}' >> packages.gradle
       echo '  bomWriter.close()' >> packages.gradle
       echo '}' >> packages.gradle
-
-      # prep gradlew proxy args for lp builders
-      if `env | grep -q snap-proxy.launchpad.net`; then
-        export GRADLEW_ARGS='-Dhttp.proxyHost=snap-proxy.launchpad.net -Dhttp.proxyPort=3128 -Dhttps.proxyHost=snap-proxy.launchpad.net -Dhttps.proxyPort=3128'
-      else
-        export GRADLEW_ARGS=''
-      fi
-
-      # setup the bigtop toolchain
-      echo "Running gradlew with: $GRADLEW_ARGS"
-      echo "JSON for plugin:"
-      curl https://plugins.gradle.org/api/gradle/2.14.1/plugin/use/de.undercouch.download/3.2.0
-      echo "Proxy in the env:"
-      echo `env | grep -i proxy`
-      echo `env | grep -i token`
-      ./gradlew -d $GRADLEW_ARGS toolchain-puppetmodules
-      ./gradlew -d $GRADLEW_ARGS toolchain
-
-      # create the bom
-      ./gradlew -d $GRADLEW_ARGS bom-snap
 
       # there is no 'build' for bigtop-utils, just set perms
       chmod 755 bigtop-packages/src/common/bigtop-utils/bigtop-detect-*
