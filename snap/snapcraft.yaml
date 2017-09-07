@@ -57,6 +57,9 @@ parts:
       echo "Running gradlew with: $GRADLEW_ARGS"
       echo "JSON for plugin:"
       curl https://plugins.gradle.org/api/gradle/2.14.1/plugin/use/de.undercouch.download/3.2.0
+      echo "Proxy in the env:"
+      echo `env | grep -i proxy`
+      echo `env | grep -i token`
       ./gradlew -d $GRADLEW_ARGS toolchain-puppetmodules
       ./gradlew -d $GRADLEW_ARGS toolchain
 
