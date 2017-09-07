@@ -1,0 +1,193 @@
+name: hadoop
+version: '1.2.0-snap1'
+summary: Hadoop it is
+description: |
+  It is Hadoop
+
+  This snap installs Hadoop 2.7.3 from the Apache Bigtop 1.2.0 release.
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+
+apps:
+  hadoop:
+    command: usr/bin/hadoop
+  hdfs:
+    command: usr/bin/hdfs
+  mapred:
+    command: usr/bin/mapred
+  yarn:
+    command: usr/bin/yarn
+
+slots:
+  content:
+    content: hadoop
+    read: 
+      - $SNAP
+
+parts:
+  bigtop:
+    source: https://github.com/apache/bigtop.git
+    source-type: git
+    source-branch: branch-1.2
+    plugin: dump
+    build-packages:
+      - patch
+      - puppet-common
+      - default-jdk-headless
+    stage-packages:
+      - default-jdk-headless
+    prepare: |
+      # add a gradlew task to generate a sourceable bom for use by other parts
+      echo 'task "bom-snap" () << {' >> packages.gradle
+      echo '  def bomWriter = new File("bigtop-snap.bom").newWriter()' >> packages.gradle
+      echo '  bomVersions.each { bomWriter << "$it\\n"}' >> packages.gradle
+      echo '  bomWriter.close()' >> packages.gradle
+      echo '}' >> packages.gradle
+
+      # setup the bigtop toolchain
+      ./gradlew toolchain-puppetmodules
+      ./gradlew toolchain
+
+      # create the bom
+      ./gradlew bom-snap
+
+      # there is no 'build' for bigtop-utils, just set perms
+      chmod 755 bigtop-packages/src/common/bigtop-utils/bigtop-detect-*
+
+      # make sure utils point to the right default directory
+      for i in `ls bigtop-packages/src/common/bigtop-utils/bigtop-*`; do
+        sed -e 's|/etc/default|${SNAP}/etc/default|' -i $i; done
+
+      # set java home to the jdk packed into the snap
+      echo 'export JAVA_HOME=${SNAP}/usr/lib/jvm/default-java' >> \
+        bigtop-packages/src/common/bigtop-utils/bigtop-utils.default
+    install: |
+      install -d -m 0755 $SNAPCRAFT_PART_INSTALL/etc/default
+      install -d -m 0755 $SNAPCRAFT_PART_INSTALL/usr/lib
+      cp -a bigtop-packages/src/common/bigtop-utils $SNAPCRAFT_PART_INSTALL/usr/lib
+      mv $SNAPCRAFT_PART_INSTALL/usr/lib/bigtop-utils/bigtop-utils.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/bigtop-utils
+    stage:
+      - etc/*
+      - usr/lib/*
+  bigtop-groovy:
+    after:
+      - bigtop
+    source: https://dl.bintray.com/groovy/maven/apache-groovy-binary-2.4.10.zip
+    plugin: dump
+    prepare: |
+      cp ../../bigtop/build/bigtop-snap.bom \
+        ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/bigtop.bom
+      chmod 755 ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/do-component-build
+      chmod 755 ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/install_groovy.sh
+    build: |
+      ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/do-component-build
+    install: |
+      ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/install_groovy.sh \
+        --prefix=$SNAPCRAFT_PART_INSTALL \
+        --build-dir=groovy-2.4.10 
+    stage:
+      - usr/lib/*
+  bigtop-jsvc:
+    after:
+      - bigtop
+    source: https://archive.apache.org/dist/commons/daemon/source/commons-daemon-1.0.15-native-src.tar.gz
+    plugin: dump
+    prepare: |
+      cp ../../bigtop/build/bigtop-snap.bom \
+        ../../bigtop/build/bigtop-packages/src/common/bigtop-jsvc/bigtop.bom
+      chmod 755 ../../bigtop/build/bigtop-packages/src/common/bigtop-jsvc/do-component-build
+      chmod 755 ../../bigtop/build/bigtop-packages/src/common/bigtop-jsvc/install_jsvc.sh
+      for i in `ls ../../bigtop/build/bigtop-packages/src/common/bigtop-jsvc/patch*.diff`; do \
+        patch -p1 -i $i; done
+    build: |
+      bash -c '. ../../bigtop/build/bigtop-packages/src/common/bigtop-utils/bigtop-detect-javahome && \
+        ../../bigtop/build/bigtop-packages/src/common/bigtop-jsvc/do-component-build'
+    install: |
+      ../../bigtop/build/bigtop-packages/src/common/bigtop-jsvc/install_jsvc.sh \
+        --prefix=$SNAPCRAFT_PART_INSTALL \
+        --build-dir=.
+    stage:
+      - usr/lib/*
+      - usr/share/*
+  hadoop:
+    after:
+      - bigtop-groovy
+      - bigtop-jsvc
+    source: http://mirrors.ocf.berkeley.edu/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3-src.tar.gz
+    plugin: dump
+    build-packages:
+      - cmake
+      - g++
+      - libfuse-dev
+      - liblzo2-dev
+      - libssl-dev
+      - libzip-dev
+      - pkg-config
+      - sharutils
+    prepare: |
+      cp ../../bigtop/build/bigtop-snap.bom \
+        ../../bigtop/build/bigtop-packages/src/common/hadoop/bigtop.bom
+      chmod 755 ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
+      chmod 755 ../../bigtop/build/bigtop-packages/src/common/hadoop/install_hadoop.sh
+
+      # patch bigtop sources with snap-specific changes for hadoop
+      for i in `ls ../../../snap/sources/patch*.diff`; do \
+        patch -d ../../bigtop/build -p1 -i $i; done
+
+      # patch hadoop sources with bigtop-specific changes
+      for i in `ls ../../bigtop/build/bigtop-packages/src/common/hadoop/patch*.diff`; do \
+        patch -p1 -i $i; done
+    build: |
+      PATH=/usr/local/ant/bin:/usr/local/gradle/bin:/usr/local/maven/bin:$PATH \
+        ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
+    install: |
+      ../../bigtop/build/bigtop-packages/src/common/hadoop/install_hadoop.sh \
+        --prefix=$SNAPCRAFT_PART_INSTALL \
+        --build-dir=build \
+        --distro-dir=../../bigtop/build/bigtop-packages/src/common/hadoop \
+        --httpfs-dir=$SNAPCRAFT_PART_INSTALL/usr/lib/hadoop-httpfs \
+        --httpfs-etc-dir=$SNAPCRAFT_PART_INSTALL/etc/hadoop-httpfs \
+        --system-lib-dir=$SNAPCRAFT_PART_INSTALL/usr/lib/ \
+        --system-libexec-dir=$SNAPCRAFT_PART_INSTALL/usr/lib/hadoop/libexec/ \
+        --system-include-dir=$SNAPCRAFT_PART_INSTALL/usr/include \
+        --doc-dir=$SNAPCRAFT_PART_INSTALL/usr/share/doc/hadoop-doc \
+        --man-dir=$SNAPCRAFT_PART_INSTALL/usr/share/man \
+        --example-dir=$SNAPCRAFT_PART_INSTALL/usr/share/doc/hadoop/examples
+
+      # adapted from ./bigtop-packages/src/deb/hadoop/rules
+      #ln -sf $SNAPCRAFT_PART_INSTALL/usr/lib/zookeeper/zookeeper.jar \
+      #  $SNAPCRAFT_PART_INSTALL/usr/lib/hadoop/lib/zookeeper*.jar
+
+      install -d -m 0755 $SNAPCRAFT_PART_INSTALL/etc/default
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hadoop.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop
+      echo 'export JSVC_HOME=${SNAP}/usr/lib/bigtop-utils' >> $SNAPCRAFT_PART_INSTALL/etc/default/hadoop
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hadoop-fuse.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-fuse
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hdfs.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-hdfs-namenode
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/mapreduce.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-mapreduce-historyserver
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/yarn.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-yarn-proxyserver
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/yarn.default \
+        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-yarn-resourcemanager
+      for i in `ls $SNAPCRAFT_PART_INSTALL/etc/default/hadoop*`; do \
+        sed -e 's|=/|=\${SNAP}/|' -i $i; done
+
+      install -d -m 0755 $SNAPCRAFT_PART_INSTALL/etc/security/limits.d
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hdfs.conf \
+        $SNAPCRAFT_PART_INSTALL/etc/security/limits.d
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/mapreduce.conf \
+        $SNAPCRAFT_PART_INSTALL/etc/security/limits.d
+      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/yarn.conf \
+        $SNAPCRAFT_PART_INSTALL/etc/security/limits.d
+
+      ln -s conf.empty $SNAPCRAFT_PART_INSTALL/etc/hadoop/conf
+      ln -s conf.empty $SNAPCRAFT_PART_INSTALL/etc/hadoop-httpfs/conf
+      ln -s tomcat-conf.dist $SNAPCRAFT_PART_INSTALL/etc/hadoop-httpfs/tomcat-conf
+    stage:
+      - etc/*
+      - usr/*
+      - var/*
