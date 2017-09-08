@@ -39,8 +39,7 @@ parts:
       - default-jdk-headless
     prepare: |
       # get bigtop deps on the system
-      puppet apply -d --parser future \
-        --modulepath="bigtop-deploy/puppet/modules:/etc/puppet/modules" \
+      puppet apply -d --parser future --modulepath=".:/etc/puppet/modules" \
         -e "include bigtop_toolchain::protobuf"
 
       # add a gradle task to generate a sourceable bom for use by other parts
