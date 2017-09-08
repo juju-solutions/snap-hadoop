@@ -66,13 +66,15 @@ parts:
     after:
       - bigtop
     source: https://dl.bintray.com/groovy/maven/apache-groovy-binary-2.4.10.zip
-    plugin: dump
+    plugin: maven
     prepare: |
       cp ../../bigtop/build/bigtop-snap.bom \
         ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/bigtop.bom
       chmod 755 ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/do-component-build
       chmod 755 ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/install_groovy.sh
     build: |
+      # the maven plugin ensures we get the right build tools, but we \
+      # still want to use the bigtop build recipe.
       ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/do-component-build
     install: |
       ../../bigtop/build/bigtop-packages/src/common/bigtop-groovy/install_groovy.sh \
