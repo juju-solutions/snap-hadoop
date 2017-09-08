@@ -7,7 +7,7 @@
 +
 +# Snap builders create a proxy-aware m2 settings file; use it if present
 +if [ -f $SNAPCRAFT_PART_INSTALL/../m2/settings.xml ] ; then
-+  MAVEN_SETTINGS_OPT="-s $SNAPCRAFT_PART_INSTALL/../m2/settings.xml"
++  mkdir -p $HOME/.m2 && ln -s $SNAPCRAFT_PART_INSTALL/../m2/settings.xml $HOME/.m2/settings.xml
 +fi
 +
  ######################################################################
@@ -20,21 +20,3 @@
          git clone https://github.com/ibmsoe/leveldbjni.git
          export SNAPPY_HOME=/usr/lib
          export LEVELDB_HOME=`cd leveldb; pwd`
-@@ -34,7 +40,7 @@
-         #Now use maven to build and update the local maven repository with ppc version of
-         #leveldbjni.
-         cd ${LEVELDBJNI_HOME}
--        mvn clean install -DskipTests -P download -Plinux64,all
-+        mvn ${MAVEN_SETTINGS_OPT} clean install -DskipTests -P download -Plinux64,all
-         cd ..
-         #cleanup
-         rm -rf ${LEVELDBJNI_HOME}
-@@ -54,7 +60,7 @@
- mkdir build/src
-
- # Build artifacts
--MAVEN_OPTS="-Dzookeeper.version=$ZOOKEEPER_VERSION"
-+MAVEN_OPTS="${MAVEN_SETTINGS_OPT} -Dzookeeper.version=$ZOOKEEPER_VERSION"
- MAVEN_OPTS="$MAVEN_OPTS -DskipTests -DskipTest -DskipITs"
- mvn $ANT_OPTS $BUNDLE_SNAPPY -Pdist -Pnative -Psrc -Dtar ${MAVEN_OPTS} -Dtomcat.version=${BIGTOP_TOMCAT_VERSION} -Dtomcat.download.url="http://archive.apache.org/dist/tomcat/tomcat-6/v${BIGTOP_TOMCAT_VERSION}/bin/apache-tomcat-${BIGTOP_TOMCAT_VERSION}.tar.gz" install "$@"
- mvn site site:stage ${MAVEN_OPTS} $@
