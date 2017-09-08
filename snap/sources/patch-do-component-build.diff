@@ -6,8 +6,8 @@
  set -ex
 +
 +# Snap builders create a proxy-aware m2 settings file; use it if present
-+if [ -f ../m2/settings.xml ] ; then
-+  MAVEN_SETTINGS_OPT="-s ../m2/settings.xml"
++if [ -f $SNAPCRAFT_PART_INSTALL/../m2/settings.xml ] ; then
++  MAVEN_SETTINGS_OPT="-s $SNAPCRAFT_PART_INSTALL/../m2/settings.xml"
 +fi
 +
  ######################################################################
