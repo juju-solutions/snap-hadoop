@@ -112,6 +112,7 @@ parts:
       - bigtop-jsvc
     source: http://mirrors.ocf.berkeley.edu/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3-src.tar.gz
     plugin: maven
+    maven-options: ['-DskipTests', '-DskipTest', '-DskipITs', 'validate']
     build-packages:
       - cmake
       - g++
@@ -134,11 +135,11 @@ parts:
       # patch hadoop sources with bigtop-specific changes
       for i in `ls ../../bigtop/build/bigtop-packages/src/common/hadoop/patch*.diff`; do \
         patch -p1 -i $i; done
-    build: |
-      # the maven plugin ensures we get the right build tools, but we \
-      # still want to use the bigtop build recipe.
-      ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
     install: |
+      # let the maven plugin do the inital bulid to setup our mvn env,
+      # but we still want to use the bigtop build recipe.
+      ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
+
       # adapted from ./bigtop-packages/src/deb/hadoop/rules
       ../../bigtop/build/bigtop-packages/src/common/hadoop/install_hadoop.sh \
         --prefix=$SNAPCRAFT_PART_INSTALL \
