@@ -159,6 +159,13 @@ parts:
       # patch hadoop sources with bigtop-specific changes
       for i in `ls ../../bigtop/build/bigtop-packages/src/common/hadoop/patch*.diff`; do \
         patch -p1 -i $i; done
+
+      # copy sources to expected locations; otherwise, when maven calls ant,
+      # we lose the builder proxy config and cant download required sources
+      mkdir -p hadoop-hdfs-project/hadoop-hdfs-httpfs/downloads
+      mkdir -p hadoop-common-project/hadoop-kms/downloads
+      cp ../../../snap/sources/apache-tomcat* hadoop-hdfs-project/hadoop-hdfs-httpfs/downloads
+      cp ../../../snap/sources/apache-tomcat* hadoop-common-project/hadoop-kms/downloads
     install: |
       # the maven plugin will do the package phase and set proxies for m2 env,
       # but we still want to use the bigtop build recipe for the final build.
