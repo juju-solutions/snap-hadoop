@@ -111,7 +111,7 @@ parts:
       - bigtop-groovy
       - bigtop-jsvc
     source: http://mirrors.ocf.berkeley.edu/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3-src.tar.gz
-    plugin: dump
+    plugin: maven
     build-packages:
       - cmake
       - g++
@@ -135,6 +135,8 @@ parts:
       for i in `ls ../../bigtop/build/bigtop-packages/src/common/hadoop/patch*.diff`; do \
         patch -p1 -i $i; done
     build: |
+      # the maven plugin ensures we get the right build tools, but we \
+      # still want to use the bigtop build recipe.
       ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
     install: |
       # adapted from ./bigtop-packages/src/deb/hadoop/rules
