@@ -32,10 +32,17 @@ parts:
     plugin: gradle
     gradle-options: ['-b', 'packages.gradle', 'bom-snap']
     build-packages:
+      - curl
       - patch
+      - puppet-common
     stage-packages:
       - default-jdk-headless
     prepare: |
+      # get bigtop deps on the system
+      puppet apply -d --parser future \
+        --modulepath="bigtop-deploy/puppet/modules:/etc/puppet/modules" \
+        -e "include bigtop_toolchain::protobuf"
+
       # add a gradle task to generate a sourceable bom for use by other parts
       echo 'task "bom-snap" () << {' >> packages.gradle
       echo '  def bomWriter = new File("bigtop-snap.bom").newWriter()' >> packages.gradle
