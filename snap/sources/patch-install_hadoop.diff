@@ -1,6 +1,6 @@
 --- a/bigtop-packages/src/common/hadoop/install_hadoop.sh	2016-05-20 10:42:15.000000000 -0500
 +++ b/bigtop-packages/src/common/hadoop/install_hadoop.sh	2017-09-06 11:29:52.000000000 -0500
-@@ -170,11 +170,16 @@ for component in $HADOOP_DIR/bin/hadoop
+@@ -170,11 +170,24 @@
  #!/bin/bash
 
  # Autodetect JAVA_HOME if not defined
@@ -8,19 +8,27 @@
 +. \${SNAP}/usr/lib/bigtop-utils/bigtop-detect-javahome
 
 -export HADOOP_LIBEXEC_DIR=/${SYSTEM_LIBEXEC_DIR#${PREFIX}}
-+export HADOOP_LIBEXEC_DIR=\${SNAP}${SYSTEM_LIBEXEC_DIR#${PREFIX}}
-+export HADOOP_CONF_DIR=\${SNAP}/etc/hadoop/conf
-+export HADOOP_COMMON_HOME=\${SNAP}${HADOOP_DIR#${PREFIX}}
-+export HADOOP_HDFS_HOME=\${SNAP}${HDFS_DIR#${PREFIX}}
-+export HADOOP_MAPRED_HOME=\${SNAP}${MAPREDUCE_DIR#${PREFIX}}
-+export HADOOP_YARN_HOME=\${SNAP}${YARN_DIR#${PREFIX}}
++# Adjust cmd if we're the hadoop snap versus a snap plugged into hadoop
++if [ -d \${SNAP}/etc/hadoop/conf ]; then
++  CMD_PREFIX=\${SNAP}
++elif [ -d \${SNAP}/hadoop/etc/hadoop/conf ]; then
++  CMD_PREFIX=\${SNAP}/hadoop
++else
++  CMD_PREFIX=
++fi
++export HADOOP_LIBEXEC_DIR=\${CMD_PREFIX}${SYSTEM_LIBEXEC_DIR#${PREFIX}}
++export HADOOP_CONF_DIR=\${CMD_PREFIX}/etc/hadoop/conf
++export HADOOP_COMMON_HOME=\${CMD_PREFIX}${HADOOP_DIR#${PREFIX}}
++export HADOOP_HDFS_HOME=\${CMD_PREFIX}${HDFS_DIR#${PREFIX}}
++export HADOOP_MAPRED_HOME=\${CMD_PREFIX}${MAPREDUCE_DIR#${PREFIX}}
++export HADOOP_YARN_HOME=\${CMD_PREFIX}${YARN_DIR#${PREFIX}}
 
 -exec ${component#${PREFIX}} "\$@"
-+exec \${SNAP}${component#${PREFIX}} "\$@"
++exec \${CMD_PREFIX}${component#${PREFIX}} "\$@"
  EOF
    chmod 755 $wrapper
  done
-@@ -265,26 +270,26 @@ cat > $fuse_wrapper << EOF
+@@ -265,26 +278,26 @@
  /sbin/modprobe fuse
 
  # Autodetect JAVA_HOME if not defined
@@ -54,7 +62,7 @@
 
  env CLASSPATH="\${CLASSPATH}" \${HADOOP_HOME}/bin/fuse_dfs \$@
  EOF
-@@ -354,7 +359,7 @@ sed -i -e '/<\/configuration>/i\
+@@ -354,7 +367,7 @@
  \
    <property>\
      <name>httpfs.hadoop.config.dir</name>\
@@ -63,7 +71,7 @@
    </property>' $HTTPFS_ETC_DIR/conf.empty/httpfs-site.xml
 
  # Make the pseudo-distributed config
-@@ -375,9 +380,9 @@ cp ${BUILD_DIR}/etc/hadoop/log4j.propert
+@@ -375,9 +388,9 @@
 
  # FIXME: Provide a convenience link for configuration (HADOOP-7939)
  install -d -m 0755 ${HADOOP_DIR}/etc
@@ -75,7 +83,7 @@
 
  # Create log, var and lib
  install -d -m 0755 $PREFIX/var/{log,run,lib}/hadoop-hdfs
-@@ -402,8 +407,8 @@ install -d -m 0755 ${CLIENT_DIR}
+@@ -402,8 +415,8 @@
  for file in `cat ${BUILD_DIR}/hadoop-client.list` ; do
    for dir in ${HADOOP_DIR}/{lib,} ${HDFS_DIR}/{lib,} ${YARN_DIR}/{lib,} ${MAPREDUCE_DIR}/{lib,} ; do
      [ -e $dir/$file ] && \
