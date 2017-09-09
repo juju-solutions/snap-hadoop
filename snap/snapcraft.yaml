@@ -1,5 +1,5 @@
 name: hadoop
-version: '1.2.0-snap1'
+version: '1.2.0-snap2'
 summary: Hadoop it is
 description: |
   It is Hadoop
@@ -138,7 +138,7 @@ parts:
     after:
       - bigtop-groovy
       - bigtop-jsvc
-    source: http://mirrors.ocf.berkeley.edu/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3-src.tar.gz
+    source: https://s3.amazonaws.com/jujubigdata/apache/noarch/hadoop-2.7.3-src.tar.gz
     plugin: maven
     maven-options:
       - -Psrc
