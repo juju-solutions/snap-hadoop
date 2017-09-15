@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -eux
+
+# setup cache dirs, not versioned
+mkdir -p ${SNAP_COMMON}/var/lib/{hadoop-hdfs,hadoop-httpfs,hadoop-mapreduce,hadoop-yarn}
+
+# setup daemon dirs, versioned
+mkdir -p ${SNAP_DATA}/var/lib/bigtop
+mkdir -p ${SNAP_DATA}/var/log/{hadoop-hdfs,hadoop-mapreduce,hadoop-yarn}
+mkdir -p ${SNAP_DATA}/var/run/{hadoop-hdfs,hadoop-mapreduce,hadoop-yarn}
+
+# setup hadoop config
+mkdir -p ${SNAP_DATA}/etc/hadoop
+cp -a ${SNAP}/etc/hadoop/conf.empty ${SNAP_DATA}/etc/hadoop
+cp -a ${SNAP}/etc/hadoop/conf.pseudo ${SNAP_DATA}/etc/hadoop
+# if we dont have config yet, use the pseudo cluster config
+if [ ! -e ${SNAP_DATA}/etc/hadoop/conf ]; then
+  ln -s conf.pseudo ${SNAP_DATA}/etc/hadoop/conf
+
+  # set config/dir structure to work with $SNAP_COMMON
+  mkdir -p ${SNAP_COMMON}/var/lib/hadoop-hdfs/cache/${SNAP_NAME}/dfs/{name,namesecondary,data}
+  echo "export HADOOP_OPTS='\$HADOOP_OPTS -Dsnap.common.dir=${SNAP_COMMON} -Dsnap.name=${SNAP_NAME}'" >> \
+    ${SNAP_DATA}/etc/hadoop/conf/hadoop-env.sh
+  sed -e 's|/var/|/${snap.common.dir}/var/|' \
+      -e 's|${user.name}|${snap.name}|' \
+      -i ${SNAP_DATA}/etc/hadoop/conf/hdfs-site.xml
+fi
+
+# setup hadoop-httpfs config
+mkdir -p ${SNAP_DATA}/etc/hadoop-httpfs
+cp -a ${SNAP}/etc/hadoop-httpfs/conf.empty ${SNAP_DATA}/etc/hadoop-httpfs
+cp -a ${SNAP}/etc/hadoop-httpfs/tomcat-conf.dist ${SNAP_DATA}/etc/hadoop-httpfs
+cp -a ${SNAP}/etc/hadoop-httpfs/tomcat-conf.https ${SNAP_DATA}/etc/hadoop-httpfs
+if [ ! -e ${SNAP_DATA}/etc/hadoop-httpfs/conf ]; then
+  ln -s conf.empty ${SNAP_DATA}/etc/hadoop-httpfs/conf
+fi
+if [ ! -e ${SNAP_DATA}/etc/hadoop-httpfs/tomcat-conf ]; then
+  ln -s tomcat-conf.dist ${SNAP_DATA}/etc/hadoop-httpfs/tomcat-conf
+fi

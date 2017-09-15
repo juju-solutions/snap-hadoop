@@ -1,0 +1,25 @@
+#!/bin/bash
+
+###############################################################################
+# Wrapper for hdfs command
+###############################################################################
+
+# Setup config/env. This wrapper may be executed by itself, in which case the
+# config script is in $SNAP. It may also be indirectly called by another snap
+# that is plugged into hadoop; in this case, the config script is in
+# $SNAP/hadoop.
+# NB: all snaps that plug into hadoop are expected to have $SNAP/hadoop and
+# $SNAP/etc/hadoop dirs that will be automatically mounted when connected.
+if [ -e ${SNAP}/wrappers/hadoop-common-wrapper.sh ]; then
+  # Hadoop snap
+  . ${SNAP}/wrappers/hadoop-common-wrapper.sh
+elif [ -e ${SNAP}/hadoop/wrappers/hadoop-common-wrapper.sh ]; then
+  # Plugged snap
+  . ${SNAP}/hadoop/wrappers/hadoop-common-wrapper.sh
+else
+  echo "Could not find 'hadoop-common-wrapper.sh'"
+  exit 1
+fi
+
+# Run hdfs
+exec ${HADOOP_HDFS_HOME}/bin/hdfs "$@"

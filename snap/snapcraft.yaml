@@ -1,5 +1,5 @@
 name: hadoop
-version: '1.2.0-snap2'
+version: '1.2.0-snap3'
 summary: Hadoop it is
 description: |
   It is Hadoop
@@ -10,19 +10,35 @@ confinement: strict # use 'strict' once you have the right plugs and slots
 
 apps:
   hadoop:
-    command: usr/bin/hadoop
+    command: wrappers/hadoop
   hdfs:
-    command: usr/bin/hdfs
+    command: wrappers/hdfs
   mapred:
-    command: usr/bin/mapred
+    command: wrappers/mapred
   yarn:
-    command: usr/bin/yarn
+    command: wrappers/yarn
+  hadoop-daemon:
+    command: wrappers/hadoop-daemon.sh
+
+plugs:
+  home:
+    interface: home
+  zookeeper:
+    interface: content
+    content: zookeeper
+    target: $SNAP/zookeeper
 
 slots:
-  content:
+  hadoop:
+    interface: content
     content: hadoop
     read: 
       - $SNAP
+  hadoop-conf:
+    interface: content
+    content: hadoop-conf
+    read: 
+      - $SNAP_DATA/etc/hadoop
 
 parts:
   bigtop:
@@ -62,12 +78,15 @@ parts:
       for i in `ls bigtop-packages/src/common/bigtop-utils/bigtop-*`; do
         sed -e 's|/etc/default|${SNAP}/etc/default|' -i $i; done
 
-      # set java home to the jdk packed into the snap
+      # point bigtop-utils to SNAP_DATA for additional classpath entries
+      echo 'export BIGTOP_CLASSPATH=${SNAP_DATA}/var/lib/bigtop' >> \
+        bigtop-packages/src/common/bigtop-utils/bigtop-utils.default
+
+      # set bigtop-utils java home to the jdk packed into the snap
       echo 'export JAVA_HOME=${SNAP}/usr/lib/jvm/default-java' >> \
         bigtop-packages/src/common/bigtop-utils/bigtop-utils.default
     install: |
       # adapted from bigtop/bigtop-packages/src/deb/bigtop-utils/rules
-      install -d -p -m 755 $SNAPCRAFT_PART_INSTALL/var/lib/bigtop/
       install -d -p -m 755 $SNAPCRAFT_PART_INSTALL/usr/lib/bigtop-utils/
       install -p -m 755 bigtop-packages/src/common/bigtop-utils/bigtop-detect-javahome \
         $SNAPCRAFT_PART_INSTALL/usr/lib/bigtop-utils/
@@ -83,7 +102,6 @@ parts:
     stage:
       - etc/*
       - usr/lib/*
-      - var/lib/*
   bigtop-groovy:
     after:
       - bigtop
@@ -146,6 +164,9 @@ parts:
       - -DskipITs
     maven-targets:
       - hadoop-dist
+    stage-packages:
+      - coreutils
+      - util-linux
     prepare: |
       cp ../../bigtop/build/bigtop-snap.bom \
         ../../bigtop/build/bigtop-packages/src/common/hadoop/bigtop.bom
@@ -210,10 +231,17 @@ parts:
       cp ../../bigtop/build/bigtop-packages/src/common/hadoop/yarn.conf \
         $SNAPCRAFT_PART_INSTALL/etc/security/limits.d
 
-      ln -s conf.empty $SNAPCRAFT_PART_INSTALL/etc/hadoop/conf
-      ln -s conf.empty $SNAPCRAFT_PART_INSTALL/etc/hadoop-httpfs/conf
-      ln -s tomcat-conf.dist $SNAPCRAFT_PART_INSTALL/etc/hadoop-httpfs/tomcat-conf
+      # create dirs for potential slot contents
+      install -d -m 0755 $SNAPCRAFT_PART_INSTALL/zookeeper
     stage:
-      - etc/*
+      - bin/*
+      - etc/hadoop*
+      - etc/security*
       - usr/*
-      - var/*
+  wrappers:
+    after:
+      - hadoop
+    source: snap/
+    plugin: dump
+    stage:
+      - wrappers/*
