@@ -11,14 +11,64 @@ confinement: strict # use 'strict' once you have the right plugs and slots
 apps:
   hadoop:
     command: wrappers/hadoop
+    plugs:
+      - 'network'
+      - 'network-bind'
   hdfs:
     command: wrappers/hdfs
+    plugs:
+      - 'network'
+      - 'network-bind'
   mapred:
     command: wrappers/mapred
+    plugs:
+      - 'network'
+      - 'network-bind'
   yarn:
     command: wrappers/yarn
-  hadoop-daemon:
-    command: wrappers/hadoop-daemon.sh
+    plugs:
+      - 'network'
+      - 'network-bind'
+  hadoop-hdfs-namenode:
+    command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start namenode
+    stop-command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop namenode
+    daemon: forking
+    plugs:
+      - 'network'
+      - 'network-bind'
+  hadoop-hdfs-datanode:
+    command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start datanode
+    stop-command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop datanode
+    daemon: forking
+    plugs:
+      - 'network'
+      - 'network-bind'
+  hadoop-yarn-resourcemanager:
+    command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start resourcemanager
+    stop-command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop resourcemanager
+    daemon: forking
+    plugs:
+      - 'network'
+      - 'network-bind'
+  hadoop-yarn-nodemanager:
+    command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start nodemanager
+    stop-command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop nodemanager
+    daemon: forking
+    plugs:
+      - 'network'
+      - 'network-bind'
+  hadoop-mapreduce-historyserver: 
+    command: wrappers/mapred-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start historyserver
+    stop-command: wrappers/mapred-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop historyserver
+    daemon: forking
+    plugs:
+      - 'network'
+      - 'network-bind'
+
+hooks:
+  configure:
+    plugs:
+      - 'network'
 
 plugs:
   home:

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 ###############################################################################
-# Wrapper for hadoop daemons
+# Wrapper for mapred daemons
 ###############################################################################
 
-# Hadoop daemons require root
+# MapReduce daemons require root
 if [ $EUID -ne 0 ]; then
   echo "ERROR: $0 must be run with root authority"
   exit 1
@@ -21,9 +21,9 @@ else
 fi
 
 # Export daemon (root) writable locations
-# HDFS
-export HADOOP_LOG_DIR=${SNAP_DATA}/var/log/hadoop-hdfs
-export HADOOP_PID_DIR=${SNAP_DATA}/var/run/hadoop-hdfs
+# Mapred
+export HADOOP_MAPRED_LOG_DIR=${SNAP_DATA}/var/log/hadoop-mapreduce
+export HADOOP_MAPRED_PID_DIR=${SNAP_DATA}/var/run/hadoop-mapreduce
 
 # Daemon uses chown and nohup; set path to prefer the bins packed into the snap
 export PATH=${SNAP}/bin:${SNAP}/usr/bin:$PATH
@@ -38,5 +38,5 @@ if [ ! -e ${HADOOP_CONF_DIR} ]; then
   exit 0
 else
   # Run the daemon script
-  exec ${HADOOP_COMMON_HOME}/sbin/hadoop-daemon.sh "$@"
+  exec ${HADOOP_MAPRED_HOME}/sbin/mr-jobhistory-daemon.sh "$@"
 fi

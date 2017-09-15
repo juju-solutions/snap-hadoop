@@ -18,13 +18,26 @@ cp -a ${SNAP}/etc/hadoop/conf.pseudo ${SNAP_DATA}/etc/hadoop
 if [ ! -e ${SNAP_DATA}/etc/hadoop/conf ]; then
   ln -s conf.pseudo ${SNAP_DATA}/etc/hadoop/conf
 
-  # set config/dir structure to work with $SNAP_COMMON
+  # set hdfs pseudo cluster config/dir structure to work with $SNAP_COMMON
   mkdir -p ${SNAP_COMMON}/var/lib/hadoop-hdfs/cache/${SNAP_NAME}/dfs/{name,namesecondary,data}
-  echo "export HADOOP_OPTS='\$HADOOP_OPTS -Dsnap.common.dir=${SNAP_COMMON} -Dsnap.name=${SNAP_NAME}'" >> \
+  echo "export HADOOP_OPTS=\"\$HADOOP_OPTS -Dsnap.common.dir=${SNAP_COMMON} -Dsnap.name=${SNAP_NAME}\"" >> \
     ${SNAP_DATA}/etc/hadoop/conf/hadoop-env.sh
-  sed -e 's|/var/|/${snap.common.dir}/var/|' \
+  sed -e 's|var/|${snap.common.dir}/var/|' \
       -e 's|${user.name}|${snap.name}|' \
       -i ${SNAP_DATA}/etc/hadoop/conf/hdfs-site.xml
+
+  # set yarn pseudo cluster config/dir structure to work with $SNAP_COMMON
+  mkdir -p ${SNAP_COMMON}/var/lib/hadoop-yarn/cache/${SNAP_NAME}/nm-local-dir
+  mkdir -p ${SNAP_COMMON}/var/log/hadoop-yarn/{containers,apps}
+  echo "export YARN_OPTS=\"\$YARN_OPTS -Dsnap.common.dir=${SNAP_COMMON} -Dsnap.name=${SNAP_NAME}\"" >> \
+    ${SNAP_DATA}/etc/hadoop/conf/yarn-env.sh
+  sed -e 's|var/|${snap.common.dir}/var/|' \
+      -e 's|${user.name}|${snap.name}|' \
+      -i ${SNAP_DATA}/etc/hadoop/conf/yarn-site.xml
+
+  # format our pseudo cluster namenode
+  # NB: echo N here in the unlikely event our NN is already formatted
+  echo N | ${SNAP}/wrappers/hdfs --config ${SNAP_DATA}/etc/hadoop/conf namenode -format
 fi
 
 # setup hadoop-httpfs config

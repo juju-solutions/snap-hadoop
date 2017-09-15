@@ -17,16 +17,15 @@ elif [ -x ${SNAP}/hadoop/usr/lib/hadoop/bin/hadoop ]; then
   export HADOOP_SNAP_HOME=${SNAP}/hadoop
   export HADOOP_CONF_PREFIX=${SNAP}
 else
-  echo "Could not find 'hadoop'"
+  echo "ERROR: Could not find 'hadoop'"
   exit 1
 fi
 
-# Ensure we can find our hadoop configuration
+# Warn if we cant find our hadoop configuration
 if [ ! -e ${HADOOP_CONF_PREFIX}/etc/hadoop/conf ]; then
-  echo "Could not find Hadoop configuration:"
+  echo "WARN: Expected Hadoop configuration not found:"
   echo ""
   echo "${HADOOP_CONF_PREFIX}/etc/hadoop/conf"
-  exit 1
 fi
 
 # Set hadoop runtime envars
@@ -37,6 +36,7 @@ export HADOOP_HDFS_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-hdfs
 export HADOOP_MAPRED_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-mapreduce
 export HADOOP_YARN_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-yarn
 export HTTPFS_CONFIG=${HADOOP_CONF_PREFIX}/etc/hadoop-httpfs/conf
+export YARN_COMMON_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-yarn
 
 # Set Bigtop envars for java and jsvc
 . ${SNAP}/usr/lib/bigtop-utils/bigtop-detect-javahome
