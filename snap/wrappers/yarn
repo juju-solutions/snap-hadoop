@@ -10,14 +10,14 @@
 # $SNAP/hadoop.
 # NB: all snaps that plug into hadoop are expected to have $SNAP/hadoop and
 # $SNAP/etc/hadoop dirs that will be automatically mounted when connected.
-if [ -e ${SNAP}/wrappers/hadoop-common-wrapper.sh ]; then
+if [ -e ${SNAP}/wrappers/common-wrapper.sh ]; then
   # Hadoop snap
-  . ${SNAP}/wrappers/hadoop-common-wrapper.sh
-elif [ -e ${SNAP}/hadoop/wrappers/hadoop-common-wrapper.sh ]; then
+  . ${SNAP}/wrappers/common-wrapper.sh
+elif [ -e ${SNAP}/hadoop/wrappers/common-wrapper.sh ]; then
   # Plugged snap
-  . ${SNAP}/hadoop/wrappers/hadoop-common-wrapper.sh
+  . ${SNAP}/hadoop/wrappers/common-wrapper.sh
 else
-  echo "Could not find 'hadoop-common-wrapper.sh'"
+  echo "Could not find 'common-wrapper.sh'"
   exit 1
 fi
 

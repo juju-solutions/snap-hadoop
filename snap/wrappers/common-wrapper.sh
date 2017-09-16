@@ -24,7 +24,6 @@ fi
 # Warn if we cant find our hadoop configuration
 if [ ! -e ${HADOOP_CONF_PREFIX}/etc/hadoop/conf ]; then
   echo "WARN: Expected Hadoop configuration not found:"
-  echo ""
   echo "${HADOOP_CONF_PREFIX}/etc/hadoop/conf"
 fi
 
@@ -37,6 +36,7 @@ export HADOOP_MAPRED_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-mapreduce
 export HADOOP_YARN_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-yarn
 export HTTPFS_CONFIG=${HADOOP_CONF_PREFIX}/etc/hadoop-httpfs/conf
 export YARN_COMMON_HOME=${HADOOP_SNAP_HOME}/usr/lib/hadoop-yarn
+export YARN_CONF_DIR=${HADOOP_CONF_PREFIX}/etc/hadoop/conf
 
 # Set Bigtop envars for java and jsvc
 . ${SNAP}/usr/lib/bigtop-utils/bigtop-detect-javahome

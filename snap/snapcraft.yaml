@@ -1,5 +1,5 @@
 name: hadoop
-version: '1.2.0-snap4'
+version: '1.2.0-snap5'
 summary: Hadoop it is
 description: |
   It is Hadoop
@@ -29,44 +29,49 @@ apps:
     plugs:
       - 'network'
       - 'network-bind'
+  daemon-wrapper:
+    command: wrappers/daemon-wrapper.sh
+    plugs:
+      - 'network'
+      - 'network-bind'
   hadoop-hdfs-namenode:
-    command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start namenode
-    stop-command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop namenode
+    command: wrappers/daemon-wrapper.sh start namenode
+    stop-command: wrappers/daemon-wrapper.sh stop namenode
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-hdfs-datanode:
-    command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start datanode
-    stop-command: wrappers/hadoop-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop datanode
+    command: wrappers/daemon-wrapper.sh start datanode
+    stop-command: wrappers/daemon-wrapper.sh stop datanode
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-yarn-resourcemanager:
-    command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start resourcemanager
-    stop-command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop resourcemanager
+    command: wrappers/daemon-wrapper.sh start resourcemanager
+    stop-command: wrappers/daemon-wrapper.sh stop resourcemanager
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-yarn-nodemanager:
-    command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start nodemanager
-    stop-command: wrappers/yarn-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop nodemanager
+    command: wrappers/daemon-wrapper.sh start nodemanager
+    stop-command: wrappers/daemon-wrapper.sh stop nodemanager
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-mapreduce-historyserver: 
-    command: wrappers/mapred-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf start historyserver
-    stop-command: wrappers/mapred-daemon.sh --config \$SNAP_DATA/etc/hadoop/conf stop historyserver
+    command: wrappers/daemon-wrapper.sh start historyserver
+    stop-command: wrappers/daemon-wrapper.sh stop historyserver
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
 
 hooks:
-  configure:
+  install:
     plugs:
       - 'network'
 
@@ -255,23 +260,6 @@ parts:
         --doc-dir=$SNAPCRAFT_PART_INSTALL/usr/share/doc/hadoop-doc \
         --man-dir=$SNAPCRAFT_PART_INSTALL/usr/share/man \
         --example-dir=$SNAPCRAFT_PART_INSTALL/usr/share/doc/hadoop/examples
-
-      install -d -m 0755 $SNAPCRAFT_PART_INSTALL/etc/default
-      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hadoop.default \
-        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop
-      echo 'export JSVC_HOME=${SNAP}/usr/lib/bigtop-utils' >> $SNAPCRAFT_PART_INSTALL/etc/default/hadoop
-      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hadoop-fuse.default \
-        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-fuse
-      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hdfs.default \
-        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-hdfs-namenode
-      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/mapreduce.default \
-        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-mapreduce-historyserver
-      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/yarn.default \
-        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-yarn-proxyserver
-      cp ../../bigtop/build/bigtop-packages/src/common/hadoop/yarn.default \
-        $SNAPCRAFT_PART_INSTALL/etc/default/hadoop-yarn-resourcemanager
-      for i in `ls $SNAPCRAFT_PART_INSTALL/etc/default/hadoop*`; do \
-        sed -e 's|=/|=\${SNAP}/|' -i $i; done
 
       install -d -m 0755 $SNAPCRAFT_PART_INSTALL/etc/security/limits.d
       cp ../../bigtop/build/bigtop-packages/src/common/hadoop/hdfs.conf \

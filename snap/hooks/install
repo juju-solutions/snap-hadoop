@@ -22,7 +22,8 @@ if [ ! -e ${SNAP_DATA}/etc/hadoop/conf ]; then
   mkdir -p ${SNAP_COMMON}/var/lib/hadoop-hdfs/cache/${SNAP_NAME}/dfs/{name,namesecondary,data}
   echo "export HADOOP_OPTS=\"\$HADOOP_OPTS -Dsnap.common.dir=${SNAP_COMMON} -Dsnap.name=${SNAP_NAME}\"" >> \
     ${SNAP_DATA}/etc/hadoop/conf/hadoop-env.sh
-  sed -e 's|var/|${snap.common.dir}/var/|' \
+  sed -e 's|<value>file:///var/|<value>${snap.common.dir}/var/|' \
+      -e 's|<value>/var/|<value>${snap.common.dir}/var/|' \
       -e 's|${user.name}|${snap.name}|' \
       -i ${SNAP_DATA}/etc/hadoop/conf/hdfs-site.xml
 
@@ -31,7 +32,7 @@ if [ ! -e ${SNAP_DATA}/etc/hadoop/conf ]; then
   mkdir -p ${SNAP_COMMON}/var/log/hadoop-yarn/{containers,apps}
   echo "export YARN_OPTS=\"\$YARN_OPTS -Dsnap.common.dir=${SNAP_COMMON} -Dsnap.name=${SNAP_NAME}\"" >> \
     ${SNAP_DATA}/etc/hadoop/conf/yarn-env.sh
-  sed -e 's|var/|${snap.common.dir}/var/|' \
+  sed -e 's|<value>/var/|<value>${snap.common.dir}/var/|' \
       -e 's|${user.name}|${snap.name}|' \
       -i ${SNAP_DATA}/etc/hadoop/conf/yarn-site.xml
 
