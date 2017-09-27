@@ -92,7 +92,7 @@ slots:
   hadoop-conf:
     interface: content
     content: hadoop-conf
-    read: 
+    write:
       - $SNAP_DATA/etc/hadoop
 
 parts:

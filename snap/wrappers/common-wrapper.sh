@@ -11,17 +11,16 @@
 if [ -x ${SNAP}/usr/lib/hadoop/bin/hadoop ]; then
   # Hadoop snap
   export HADOOP_SNAP_HOME=${SNAP}
-  export HADOOP_CONF_PREFIX=${SNAP_DATA}
 elif [ -x ${SNAP}/hadoop/usr/lib/hadoop/bin/hadoop ]; then
   # Plugged snap
   export HADOOP_SNAP_HOME=${SNAP}/hadoop
-  export HADOOP_CONF_PREFIX=${SNAP}
 else
   echo "ERROR: Could not find 'hadoop'"
   exit 1
 fi
 
 # Warn if we cant find our hadoop configuration
+export HADOOP_CONF_PREFIX=${SNAP_DATA}
 if [ ! -e ${HADOOP_CONF_PREFIX}/etc/hadoop/conf ]; then
   echo "WARN: Expected Hadoop configuration not found:"
   echo "${HADOOP_CONF_PREFIX}/etc/hadoop/conf"
