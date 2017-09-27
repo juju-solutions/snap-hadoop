@@ -243,9 +243,12 @@ parts:
       cp ../../../snap/sources/apache-tomcat* hadoop-hdfs-project/hadoop-hdfs-httpfs/downloads
       cp ../../../snap/sources/apache-tomcat* hadoop-common-project/hadoop-kms/downloads
     install: |
-      # the maven plugin will do the package phase and set proxies for m2 env,
-      # but we still want to use the bigtop build recipe for the final build.
-      ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build
+      # Do not define build tasks because we want the maven plugin to setup any
+      # proxy config (otherwise, we'd have to grok the env and do it ourselves).
+      # We still want to use the bigtop build recipe for the actual build, so
+      # do it first thing during install.
+      # NB: exit 1 on failure since install step failures do not stop the build
+      ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build || exit 1
 
       # adapted from bigtop/bigtop-packages/src/deb/hadoop/rules
       ../../bigtop/build/bigtop-packages/src/common/hadoop/install_hadoop.sh \
