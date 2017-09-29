@@ -1,12 +1,13 @@
 name: hadoop
-version: '1.2.0-snap5'
-summary: Hadoop it is
+version: '1.2.0'
+summary: Apache Hadoop
 description: |
-  It is Hadoop
+  Hadoop is a software platform that lets one easily write and run applications
+  that process vast amounts of data.
 
-  This snap installs Hadoop 2.7.3 from the Apache Bigtop 1.2.0 release.
-grade: devel # must be 'stable' to release into candidate/stable channels
-confinement: strict # use 'strict' once you have the right plugs and slots
+  This snap installs Hadoop 2.7.3 and is compatible with Apache Bigtop 1.2.0.
+grade: stable
+confinement: strict
 
 apps:
   hadoop:
@@ -73,6 +74,7 @@ apps:
 hooks:
   install:
     plugs:
+      # needs network to format the namenode
       - 'network'
 
 plugs:
@@ -214,6 +216,9 @@ parts:
     source: https://s3.amazonaws.com/jujubigdata/apache/noarch/hadoop-2.7.3-src.tar.gz
     plugin: maven
     maven-options:
+      # We need the maven plugin to setup our env, but dont actually care about
+      # the packaged build. Build as fast as we can, leaving the real build for
+      # the install phase.
       - -Psrc
       - -DskipTests
       - -DskipITs
@@ -279,6 +284,7 @@ parts:
       - etc/hadoop*
       - etc/security*
       - usr/*
+      - zookeeper
   wrappers:
     after:
       - hadoop
