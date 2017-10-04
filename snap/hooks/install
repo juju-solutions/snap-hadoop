@@ -2,13 +2,13 @@
 
 set -eux
 
-# setup cache dirs, not versioned
+# setup cache/pid dirs, not versioned
 mkdir -p ${SNAP_COMMON}/var/lib/{hadoop-hdfs,hadoop-httpfs,hadoop-mapreduce,hadoop-yarn}
+mkdir -p ${SNAP_COMMON}/var/run/{hadoop-hdfs,hadoop-mapreduce,hadoop-yarn}
 
-# setup daemon dirs, versioned
+# setup lib/log dirs, versioned
 mkdir -p ${SNAP_DATA}/var/lib/bigtop
 mkdir -p ${SNAP_DATA}/var/log/{hadoop-hdfs,hadoop-mapreduce,hadoop-yarn}
-mkdir -p ${SNAP_DATA}/var/run/{hadoop-hdfs,hadoop-mapreduce,hadoop-yarn}
 
 # setup hadoop config, versioned
 mkdir -p ${SNAP_DATA}/etc/hadoop

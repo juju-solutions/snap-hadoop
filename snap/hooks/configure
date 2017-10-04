@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -eux
+
+# ensure root-writable versioned dirs are present
+mkdir -p ${SNAP_DATA}/etc/hadoop
+mkdir -p ${SNAP_DATA}/etc/hadoop-httpfs
+mkdir -p ${SNAP_DATA}/etc/zookeeper
+mkdir -p ${SNAP_DATA}/var/lib/bigtop
+mkdir -p ${SNAP_DATA}/var/log/{hadoop-hdfs,hadoop-mapreduce,hadoop-yarn}

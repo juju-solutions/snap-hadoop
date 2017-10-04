@@ -34,15 +34,15 @@ fi
 # Export daemon (root) writable locations
 # HDFS
 export HADOOP_LOG_DIR=${SNAP_DATA}/var/log/hadoop-hdfs
-export HADOOP_PID_DIR=${SNAP_DATA}/var/run/hadoop-hdfs
+export HADOOP_PID_DIR=${SNAP_COMMON}/var/run/hadoop-hdfs
 
 # Mapred
 export HADOOP_MAPRED_LOG_DIR=${SNAP_DATA}/var/log/hadoop-mapreduce
-export HADOOP_MAPRED_PID_DIR=${SNAP_DATA}/var/run/hadoop-mapreduce
+export HADOOP_MAPRED_PID_DIR=${SNAP_COMMON}/var/run/hadoop-mapreduce
 
 # YARN
 export YARN_LOG_DIR=${SNAP_DATA}/var/log/hadoop-yarn
-export YARN_PID_DIR=${SNAP_DATA}/var/run/hadoop-yarn
+export YARN_PID_DIR=${SNAP_COMMON}/var/run/hadoop-yarn
 
 # Daemon uses chown and nohup; set path to prefer the bins packed into the snap
 export PATH=${SNAP}/bin:${SNAP}/usr/bin:$PATH

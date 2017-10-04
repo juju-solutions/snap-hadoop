@@ -248,10 +248,18 @@ parts:
       cp ../../../snap/sources/apache-tomcat* hadoop-hdfs-project/hadoop-hdfs-httpfs/downloads
       cp ../../../snap/sources/apache-tomcat* hadoop-common-project/hadoop-kms/downloads
     install: |
+      # Snap builders create a proxy-aware m2 settings file; use it if present
+      if [ -e $SNAPCRAFT_PART_INSTALL/../m2/settings.xml ] ; then
+        if [ ! -e $HOME/.m2/settings.xml ]; then
+          mkdir -p $HOME/.m2 && \
+            ln -s $SNAPCRAFT_PART_INSTALL/../m2/settings.xml $HOME/.m2/settings.xml
+        fi
+      fi
+
       # Do not define build tasks because we want the maven plugin to setup any
       # proxy config (otherwise, we'd have to grok the env and do it ourselves).
       # We still want to use the bigtop build recipe for the actual build, so
-      # do it first thing during install.
+      # do it asap during install.
       # NB: exit 1 on failure since install step failures do not stop the build
       ../../bigtop/build/bigtop-packages/src/common/hadoop/do-component-build || exit 1
 
