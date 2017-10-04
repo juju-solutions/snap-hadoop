@@ -1,17 +1,6 @@
 --- a/bigtop-packages/src/common/hadoop/do-component-build	2017-06-01 16:21:26.000000000 -0500
 +++ b/bigtop-packages/src/common/hadoop/do-component-build	2017-09-07 18:50:51.000000000 -0500
-@@ -15,12 +15,18 @@
- # limitations under the License.
-
- set -ex
-+
-+# Snap builders create a proxy-aware m2 settings file; use it if present
-+if [ -f $SNAPCRAFT_PART_INSTALL/../m2/settings.xml ] ; then
-+  mkdir -p $HOME/.m2 && ln -s $SNAPCRAFT_PART_INSTALL/../m2/settings.xml $HOME/.m2/settings.xml
-+fi
-+
- ######################################################################
- # BIGTOP-2288 Please remove this patch when maven repository is updated
+@@ -20,7 +20,7 @@
  # with version of leveldbjni-all library that is not x86 specific
  if [ $HOSTTYPE = "powerpc64le" ] ; then
          #download the POWER version of leveldb
