@@ -23,11 +23,11 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # Setup config/env
-if [ -e ${SNAP}/wrappers/common-wrapper.sh ]; then
-  . ${SNAP}/wrappers/common-wrapper.sh
+if [ -e ${SNAP}/wrappers/hadoop-common-wrapper.sh ]; then
+  . ${SNAP}/wrappers/hadoop-common-wrapper.sh
 else
-  echo "ERROR: Could not find 'common-wrapper.sh':"
-  echo "${SNAP}/wrappers/common-wrapper.sh"
+  echo "ERROR: Could not find 'hadoop-common-wrapper.sh':"
+  echo "${SNAP}/wrappers/hadoop-common-wrapper.sh"
   exit 1
 fi
 

@@ -31,41 +31,41 @@ apps:
       - 'network'
       - 'network-bind'
   daemon-wrapper:
-    command: wrappers/daemon-wrapper.sh
+    command: wrappers/hadoop-daemon-wrapper.sh
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-hdfs-namenode:
-    command: wrappers/daemon-wrapper.sh start namenode
-    stop-command: wrappers/daemon-wrapper.sh stop namenode
+    command: wrappers/hadoop-daemon-wrapper.sh start namenode
+    stop-command: wrappers/hadoop-daemon-wrapper.sh stop namenode
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-hdfs-datanode:
-    command: wrappers/daemon-wrapper.sh start datanode
-    stop-command: wrappers/daemon-wrapper.sh stop datanode
+    command: wrappers/hadoop-daemon-wrapper.sh start datanode
+    stop-command: wrappers/hadoop-daemon-wrapper.sh stop datanode
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-yarn-resourcemanager:
-    command: wrappers/daemon-wrapper.sh start resourcemanager
-    stop-command: wrappers/daemon-wrapper.sh stop resourcemanager
+    command: wrappers/hadoop-daemon-wrapper.sh start resourcemanager
+    stop-command: wrappers/hadoop-daemon-wrapper.sh stop resourcemanager
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-yarn-nodemanager:
-    command: wrappers/daemon-wrapper.sh start nodemanager
-    stop-command: wrappers/daemon-wrapper.sh stop nodemanager
+    command: wrappers/hadoop-daemon-wrapper.sh start nodemanager
+    stop-command: wrappers/hadoop-daemon-wrapper.sh stop nodemanager
     daemon: forking
     plugs:
       - 'network'
       - 'network-bind'
   hadoop-mapreduce-historyserver: 
-    command: wrappers/daemon-wrapper.sh start historyserver
-    stop-command: wrappers/daemon-wrapper.sh stop historyserver
+    command: wrappers/hadoop-daemon-wrapper.sh start historyserver
+    stop-command: wrappers/hadoop-daemon-wrapper.sh stop historyserver
     daemon: forking
     plugs:
       - 'network'
